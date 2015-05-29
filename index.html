@@ -28,7 +28,7 @@ body {
 <body>
 <script src="http://d3js.org/d3.v3.js"></script>
 <script>
-var json = [
+var data1 = [
   {
     "the_course_as_a_whole": 4.17,
     "time": 131,
@@ -85,7 +85,7 @@ var json = [
   }
 ];
 
-var data1 = [
+var json = [
     {
         "City": "New York",
         "Date": "20111001",
@@ -135,7 +135,7 @@ var data1 = [
 
 var data = d3.nest()
     .key(function(d) {
-        return d.City;
+        return d.professor;
     })
     .entries(data1);
 
@@ -188,10 +188,10 @@ var yAxis = d3.svg.axis()
 var line = d3.svg.line()
     .interpolate("basis")
     .x(function (d) {
-    return x(d.Date);
+    return x(d.time);
 })
     .y(function (d) {
-    return y(d.Value);
+    return y(d.the_course_as_a_whole);
 });
 
 var svg = d3.select("body").append("svg")
@@ -204,16 +204,16 @@ color.domain(data.map(function (d) { return d.key; }));
 
 data.forEach(function (kv) {
     kv.values.forEach(function (d) {
-        d.Date = parseDate(d.Date);
+        d.time = d.time;
     });
 });
 
 var cities = data;
 
-var minX = d3.min(data, function (kv) { return d3.min(kv.values, function (d) { return d.Date; }) });
-var maxX = d3.max(data, function (kv) { return d3.max(kv.values, function (d) { return d.Date; }) });
-var minY = d3.min(data, function (kv) { return d3.min(kv.values, function (d) { return d.Value; }) });
-var maxY = d3.max(data, function (kv) { return d3.max(kv.values, function (d) { return d.Value; }) });
+var minX = d3.min(data, function (kv) { return d3.min(kv.values, function (d) { return d.time; }) });
+var maxX = d3.max(data, function (kv) { return d3.max(kv.values, function (d) { return d.time; }) });
+var minY = d3.min(data, function (kv) { return d3.min(kv.values, function (d) { return d.the_course_as_a_whole; }) });
+var maxY = d3.max(data, function (kv) { return d3.max(kv.values, function (d) { return d.the_course_as_a_whole; }) });
 
 x.domain([minX, maxX]);
 y.domain([minY, maxY]);
@@ -233,12 +233,12 @@ svg.append("g")
     .style("text-anchor", "end")
     .text("Temperature (ºF)");
 
-var city = svg.selectAll(".city")
+var professor = svg.selectAll(".professor")
     .data(cities)
     .enter().append("g")
-    .attr("class", "city");
+    .attr("class", "professor");
 
-city.append("path")
+professor.append("path")
     .attr("class", "line")
     .attr("d", function (d) {
     return line(d.values);
@@ -247,16 +247,16 @@ city.append("path")
     return color(d.key);
 });
 
-city.append("text")
+professor.append("text")
     .datum(function (d) {
     return {
         name: d.key,
-        date: d.values[d.values.length - 1].Date,
-        value: d.values[d.values.length - 1].Value
+        date: d.values[d.values.length - 1].time,
+        value: d.values[d.values.length - 1].the_course_as_a_whole
     };
 })
     .attr("transform", function (d) {
-    return "translate(" + x(d.date) + "," + y(d.value) + ")";
+    return "translate(" + x(d.time) + "," + y(d.the_course_as_a_whole) + ")";
 })
     .attr("x", 3)
     .attr("dy", ".35em")

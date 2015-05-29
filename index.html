@@ -133,10 +133,16 @@ var data1 = [
     },
 ];
 
-var data = [
+var data = d3.nest()
+    .key(function(d) {
+        return d.City;
+    })
+    .entries(data1);
+
+/*var data = [
     {
-        "City": "New York",
-        "Data": [
+        "key": "New York",
+        "value": [
             {
                 "Date": "20111001",
                 "Value": "63.4"
@@ -150,42 +156,7 @@ var data = [
                 "Value": "53.3"
             }
         ]
-    },
-    {
-        "City": "San Francisco",
-        "Data": [
-            {
-                "Date": "20111001",
-                "Value": "62.7"
-            },
-            {
-                "Date": "20111002",
-                "Value": "59.9"
-            },
-            {
-                "Date": "20111003",
-                "Value": "59.1"
-            }
-        ]
-    },
-    {
-        "City": "Austin",
-        "Data": [
-            {
-                "Date": "20111001",
-                "Value": "72.2"
-            },
-            {
-                "Date": "20111002",
-                "Value": "67.7"
-            },
-            {
-                "Date": "20111003",
-                "Value": "69.4"
-            }
-        ]
-    }
-];
+    }, ...];*/
 
 var margin = {
     top: 20,
@@ -229,20 +200,20 @@ var svg = d3.select("body").append("svg")
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-color.domain(data.map(function (d) { return d.City; }));
+color.domain(data.map(function (d) { return d.key; }));
 
 data.forEach(function (kv) {
-    kv.Data.forEach(function (d) {
+    kv.values.forEach(function (d) {
         d.Date = parseDate(d.Date);
     });
 });
 
 var cities = data;
 
-var minX = d3.min(data, function (kv) { return d3.min(kv.Data, function (d) { return d.Date; }) });
-var maxX = d3.max(data, function (kv) { return d3.max(kv.Data, function (d) { return d.Date; }) });
-var minY = d3.min(data, function (kv) { return d3.min(kv.Data, function (d) { return d.Value; }) });
-var maxY = d3.max(data, function (kv) { return d3.max(kv.Data, function (d) { return d.Value; }) });
+var minX = d3.min(data, function (kv) { return d3.min(kv.values, function (d) { return d.Date; }) });
+var maxX = d3.max(data, function (kv) { return d3.max(kv.values, function (d) { return d.Date; }) });
+var minY = d3.min(data, function (kv) { return d3.min(kv.values, function (d) { return d.Value; }) });
+var maxY = d3.max(data, function (kv) { return d3.max(kv.values, function (d) { return d.Value; }) });
 
 x.domain([minX, maxX]);
 y.domain([minY, maxY]);
@@ -270,18 +241,18 @@ var city = svg.selectAll(".city")
 city.append("path")
     .attr("class", "line")
     .attr("d", function (d) {
-    return line(d.Data);
+    return line(d.values);
 })
     .style("stroke", function (d) {
-    return color(d.City);
+    return color(d.key);
 });
 
 city.append("text")
     .datum(function (d) {
     return {
-        name: d.City,
-        date: d.Data[d.Data.length - 1].Date,
-        value: d.Data[d.Data.length - 1].Value
+        name: d.key,
+        date: d.values[d.values.length - 1].Date,
+        value: d.values[d.values.length - 1].Value
     };
 })
     .attr("transform", function (d) {

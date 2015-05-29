@@ -188,8 +188,8 @@ var yAxis = d3.svg.axis()
 var line = d3.svg.line()
     .interpolate("basis")
     .x(function (d) {
-    return x(d.time);
-})
+        return x(d.time);
+    })
     .y(function (d) {
     return y(d.the_course_as_a_whole);
 });
@@ -256,7 +256,7 @@ professor.append("text")
     };
 })
     .attr("transform", function (d) {
-    return "translate(" + x(d.time) + "," + y(d.the_course_as_a_whole) + ")";
+    return "translate(" + x(d.date) + "," + y(d.value) + ")";
 })
     .attr("x", 3)
     .attr("dy", ".35em")

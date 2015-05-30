@@ -192,9 +192,11 @@ var yAxis = d3.svg.axis()
 var line = d3.svg.line()
     .interpolate("basis") // COMMENT OUT FOR STRAIGHT LINES
     .x(function (d) {
+        console.log("x = " + x(d.time));
         return x(d.time);
     })
     .y(function (d) {
+        console.log("y = " + y(d.the_course_as_a_whole));
     return y(d.the_course_as_a_whole);
 });
 
@@ -280,7 +282,7 @@ professor.append("path")
     return color(d.key);
 });
 
-svg.selectAll('circle')
+/*svg.selectAll('circle')
     .data(data)
     .enter().append('circle')
     .attr('cx', function (d) {
@@ -291,7 +293,25 @@ svg.selectAll('circle')
     })
     .attr('r', 3)
     .style("fill", "white")
-    ;
+    ;*/
+
+svg.selectAll('g.dot')
+    .data(data)
+    .enter().append("g")
+    .attr("class", "dot")
+    .selectAll("circle")
+    .data(function(d) {
+        return d.values;
+    })
+    .enter().append('circle')
+    .attr("cx", function(d, i) { 
+        return x(d.time); 
+    })
+    .attr("cy", function(d, i) {
+        return y(d.the_course_as_a_whole);
+    })
+    .attr('r', 3)
+    .style("fill", "white");
 
 svg.selectAll('circle')
 .style("stroke", function (d) {

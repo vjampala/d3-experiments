@@ -24,6 +24,10 @@ body {
   stroke-width: 1.5px;
 }
 
+.title {
+                font: 13px sans-serif;
+            }
+
 </style>
 <body>
 <script src="http://d3js.org/d3.v3.js"></script>
@@ -186,7 +190,7 @@ var yAxis = d3.svg.axis()
     .orient("left");
 
 var line = d3.svg.line()
-    .interpolate("basis")
+    .interpolate("basis") // COMMENT OUT FOR STRAIGHT LINES
     .x(function (d) {
         return x(d.time);
     })
@@ -249,15 +253,23 @@ svg.append("g")
     .call(yAxis)
     .append("text")
     .attr("transform", "rotate(-90)")
-    .attr("y", 6)
+    .attr("y", 8 - margin.left)
+    .attr("x",0 - (height / 2))
     .attr("dy", ".71em")
-    .style("text-anchor", "end")
+    .style("text-anchor", "middle")
     .text("Overall Rating");
 
 var professor = svg.selectAll(".professor")
     .data(cities)
     .enter().append("g")
     .attr("class", "professor");
+
+/*svg.selectAll("dot")
+        .data(data)
+    .enter().append("circle")
+        .attr("r", 3.5)
+        .attr("cx", function(d) { return x(d.values[d.values.length - 1].time); })
+        .attr("cy", function(d) { return y(d.values[d.values.length - 1].the_course_as_a_whole); });*/
 
 professor.append("path")
     .attr("class", "line")
@@ -267,6 +279,24 @@ professor.append("path")
     .style("stroke", function (d) {
     return color(d.key);
 });
+
+svg.selectAll('circle')
+    .data(data)
+    .enter().append('circle')
+    .attr('cx', function (d) {
+        return x(d.values[d.values.length - 1].time); // EMILY PLZ HALP
+    })
+    .attr('cy', function (d) {
+        return y(d.values[d.values.length - 1].the_course_as_a_whole); // EMILY PLZ HALP
+    })
+    .attr('r', 3)
+    .style("fill", "white")
+    ;
+
+svg.selectAll('circle')
+.style("stroke", function (d) {
+    return color(d.key);
+}); 
 
 professor.append("text")
     .datum(function (d) {

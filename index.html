@@ -14,9 +14,9 @@ body {
   shape-rendering: crispEdges;
 }
 
-.x.axis path {
+/*.x.axis path {
   display: none;
-}
+}*/
 
 .line {
   fill: none;
@@ -167,9 +167,9 @@ var margin = {
 width = 560 - margin.left - margin.right,
     height = 300 - margin.top - margin.bottom;
 
-var parseDate = d3.time.format("%Y%m%d").parse;
+//var parseDate = d3.time.format("%Y%m%d").parse;
 
-var x = d3.time.scale()
+var x = d3.scale.linear()
     .range([0, width]);
 
 var y = d3.scale.linear()
@@ -178,7 +178,7 @@ var y = d3.scale.linear()
 var color = d3.scale.category10();
 
 var xAxis = d3.svg.axis()
-    .scale(x)
+   .scale(x)
     .orient("bottom");
 
 var yAxis = d3.svg.axis()
@@ -202,9 +202,11 @@ var svg = d3.select("body").append("svg")
 
 color.domain(data.map(function (d) { return d.key; }));
 
+var timeValues = [];
 data.forEach(function (kv) {
     kv.values.forEach(function (d) {
         d.time = d.time;
+        timeValues.push(d.time);
     });
 });
 
@@ -217,6 +219,25 @@ var maxY = d3.max(data, function (kv) { return d3.max(kv.values, function (d) { 
 
 x.domain([minX, maxX]);
 y.domain([minY, maxY]);
+
+function getPrettyTime(time) {
+    var quarterNum = time.substr(time.length - 1);
+    var quarterStr = "str";
+    if (quarterNum === "0") {
+        quarterStr = "Wi";
+    } else if (quarterNum === "1") {
+        quarterStr = "Sp";
+    } else if (quarterNum === "2") {
+        quarterStr = "Su";
+    } else {
+        quarterStr = "Au";
+    }
+    return quarterStr.concat(time.substring(0, time.length - 1));
+}
+
+timeValues = d3.set(timeValues).values(); 
+xAxis.tickValues(timeValues);
+xAxis.tickFormat(function(d) { return getPrettyTime(d); })
 
 svg.append("g")
     .attr("class", "x axis")
@@ -231,7 +252,7 @@ svg.append("g")
     .attr("y", 6)
     .attr("dy", ".71em")
     .style("text-anchor", "end")
-    .text("Temperature (ºF)");
+    .text("Overall Rating");
 
 var professor = svg.selectAll(".professor")
     .data(cities)

@@ -190,13 +190,11 @@ var yAxis = d3.svg.axis()
     .orient("left");
 
 var line = d3.svg.line()
-    .interpolate("basis") // COMMENT OUT FOR STRAIGHT LINES
+//    .interpolate("linear") // COMMENT OUT FOR STRAIGHT LINES
     .x(function (d) {
-        console.log("x = " + x(d.time));
         return x(d.time);
     })
     .y(function (d) {
-        console.log("y = " + y(d.the_course_as_a_whole));
     return y(d.the_course_as_a_whole);
 });
 
@@ -315,7 +313,7 @@ svg.selectAll('g.dot')
 
 svg.selectAll('circle')
 .style("stroke", function (d) {
-    return color(d.key);
+    return color(d.professor);
 }); 
 
 professor.append("text")

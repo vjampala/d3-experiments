@@ -27,10 +27,19 @@ body {
 .title {
                 font: 13px sans-serif;
             }
+.d3-tip {
+    line-height: 0.5;
+    font-weight: bold;
+    padding: 5px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 2px;
+}
 
 </style>
 <body>
 <script src="http://d3js.org/d3.v3.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
 <script>
 var data1 = [
   {
@@ -204,6 +213,20 @@ var svg = d3.select("body").append("svg")
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+// TODO: USES OUTSIDE CODE ------------- DON"T FORGET TO SITE
+var tip = d3.tip() 
+    .attr('class', 'd3-tip')
+    .offset([-10, 0])
+    .html(function(d) {
+        return d.the_course_as_a_whole;
+    })
+
+svg.call(tip);
+
+/*var tooltip = d3.select('body')
+    .append('div')
+    .attr('class', 'tooltip');*/
+
 color.domain(data.map(function (d) { return d.key; }));
 
 var timeValues = [];
@@ -264,13 +287,6 @@ var professor = svg.selectAll(".professor")
     .enter().append("g")
     .attr("class", "professor");
 
-/*svg.selectAll("dot")
-        .data(data)
-    .enter().append("circle")
-        .attr("r", 3.5)
-        .attr("cx", function(d) { return x(d.values[d.values.length - 1].time); })
-        .attr("cy", function(d) { return y(d.values[d.values.length - 1].the_course_as_a_whole); });*/
-
 professor.append("path")
     .attr("class", "line")
     .attr("d", function (d) {
@@ -279,19 +295,6 @@ professor.append("path")
     .style("stroke", function (d) {
     return color(d.key);
 });
-
-/*svg.selectAll('circle')
-    .data(data)
-    .enter().append('circle')
-    .attr('cx', function (d) {
-        return x(d.values[d.values.length - 1].time); // EMILY PLZ HALP
-    })
-    .attr('cy', function (d) {
-        return y(d.values[d.values.length - 1].the_course_as_a_whole); // EMILY PLZ HALP
-    })
-    .attr('r', 3)
-    .style("fill", "white")
-    ;*/
 
 svg.selectAll('g.dot')
     .data(data)
@@ -309,7 +312,16 @@ svg.selectAll('g.dot')
         return y(d.the_course_as_a_whole);
     })
     .attr('r', 3)
-    .style("fill", "white");
+    .style("fill", "white")
+    /*.on('mouseover', function(d) {
+        tooltip.select('tooltip').html("hellow.....");
+        tooltip.style('display', 'block');
+    })
+    .on('moustout', function(d) {
+        tooltip.style('display', 'none');
+    });*/
+    .on('mouseover', tip.show)
+    .on('mouseout', tip.hide);
 
 svg.selectAll('circle')
 .style("stroke", function (d) {

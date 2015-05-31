@@ -245,7 +245,7 @@ var minY = d3.min(data, function (kv) { return d3.min(kv.values, function (d) { 
 var maxY = d3.max(data, function (kv) { return d3.max(kv.values, function (d) { return d.the_course_as_a_whole; }) });
 
 x.domain([minX, maxX]);
-y.domain([minY, maxY]);
+y.domain([0, maxY]);
 
 function getPrettyTime(time) {
     var quarterNum = time.substr(time.length - 1);

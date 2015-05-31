@@ -277,6 +277,13 @@ svg.append("g")
     .attr("transform", "translate(0," + height + ")")
     .call(xAxis);
 
+// Add the text label for the x axis
+svg.append("text")
+    .attr("transform", "translate(" + (width / 2) + " ," + (height + margin.bottom) + ")")
+    .style("text-anchor", "middle")
+    .text("Quarter");    
+    
+
 svg.append("g")
     .attr("class", "y axis")
     .call(yAxis)
@@ -348,8 +355,8 @@ professor.append("text")
     .attr("transform", function (d) {
     return "translate(" + x(d.date) + "," + y(d.value) + ")";
 })
-    .attr("x", 3)
-    .attr("dy", ".35em")
+    .attr("x", 10)
+    .attr("dy", ".5em")
     .text(function (d) {
         return d.name;
 });

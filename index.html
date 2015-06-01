@@ -41,15 +41,70 @@ body {
 <script src="http://d3js.org/d3.v3.js"></script>
 <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
 <script>
+function modifyData(data) {
+    var newData = []
+    var existingData = {}
+
+    // Merge averages
+    for(var i = 0; i < data.length; i++) {
+        var dataPoint = data[i];
+        var rating = dataPoint.the_course_as_a_whole;
+        var prevCount = 0;
+        delete dataPoint["the_course_as_a_whole"];
+
+        // To use as key
+        dataPointString = JSON.stringify(dataPoint);
+
+        // Rating already exists.  So keep track that this is a duplicate
+        if (dataPointString in existingData) {
+            var prevRating = existingData[dataPointString];
+            rating = prevRating["sum"] + rating;
+            prevCount = prevRating["count"];   
+        } 
+
+        // Updated stored rating for a class
+        existingData[dataPointString] = {"sum": rating, "count": prevCount + 1};
+    }
+
+    // Set to previous format 
+    for (var key in existingData) {
+        if( existingData.hasOwnProperty(key) ) {
+            var course = JSON.parse(key);
+            var rating = existingData[key];
+            course["the_course_as_a_whole"] = parseFloat((rating["sum"] / rating["count"]).toFixed(2));
+            newData.push(course);
+        }
+    }    
+    return newData;
+}
+
 var data1 = [
   {
-    "the_course_as_a_whole": 4.17,
+    "the_course_as_a_whole": 5,
     "time": 131,
     "professor": "Allison Obourn",
     "course_whole_code": "Hiiiiii",
   },
   {
-    "the_course_as_a_whole": 4.71,
+    "the_course_as_a_whole": 2,
+    "time": 131,
+    "professor": "Allison Obourn",
+    "course_whole_code": "Hiiiiii",
+  },
+  {
+    "the_course_as_a_whole": 5,
+    "time": 131,
+    "professor": "Stuart Reges",
+    "course_whole_code": "Hiiiiii",
+  },
+  {
+    "the_course_as_a_whole": 1,
+    "time": 131,
+    "professor": "Stuart Reges",
+    "course_whole_code": "Hiiiiii",
+  },
+  {
+    "the_course_as_a_whole": 4,
     "time": 131,
     "professor": "Stuart Reges",
     "course_whole_code": "Hiiiiii",
@@ -91,60 +146,26 @@ var data1 = [
     "course_whole_code": "Hiiiiii",
   },
   {
-    "the_course_as_a_whole": 3.2,
+    "the_course_as_a_whole": 3,
+    "time": 142,
+    "professor": "Ilene Shen",
+    "course_whole_code": "Hiiiiii",
+  },
+  {
+    "the_course_as_a_whole": 5,
+    "time": 142,
+    "professor": "Ilene Shen",
+    "course_whole_code": "Hiiiiii",
+  },
+  {
+    "the_course_as_a_whole": 5,
     "time": 142,
     "professor": "Ilene Shen",
     "course_whole_code": "Hiiiiii",
   }
 ];
 
-var json = [
-    {
-        "City": "New York",
-        "Date": "20111001",
-        "Value": "63.4",
-    },
-    {
-        "City": "New York",
-        "Date": "20111002",
-        "Value": "58.0",
-    },
-    {
-        "City": "New York",
-        "Date": "20111003",
-        "Value": "53.3",
-    },
-    {
-        "City": "San Francisco",
-        "Date": "20111001",
-        "Value": "62.7",
-    },
-    {
-        "City": "San Francisco",
-        "Date": "20111002",
-        "Value": "59.9",
-    },
-    {
-        "City": "San Francisco",
-        "Date": "20111003",
-        "Value": "59.1",
-    },
-    {
-        "City": "Austin",
-        "Date": "20111001",
-        "Value": "72.2",
-    },
-    {
-        "City": "Austin",
-        "Date": "20111002",
-        "Value": "67.7",
-    },
-    {
-        "City": "Austin",
-        "Date": "20111003",
-        "Value": "69.4",
-    },
-];
+data1 = modifyData(data1);
 
 var data = d3.nest()
     .key(function(d) {

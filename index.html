@@ -327,14 +327,26 @@ svg.selectAll('g.dot')
         return y(d.the_course_as_a_whole);
     })
     .attr('r', 3)
-    .style("fill", "white")
-    /*.on('mouseover', function(d) {
-        tooltip.select('tooltip').html("hellow.....");
-        tooltip.style('display', 'block');
+    .style("fill", "white");
+
+// Add underlying circle for larger hover area
+svg.selectAll('g.largeDot')
+    .data(data)
+    .enter().append("g")
+    .attr("class", "largeDot")
+    .selectAll("circle")
+    .data(function(d) {
+        return d.values;
     })
-    .on('moustout', function(d) {
-        tooltip.style('display', 'none');
-    });*/
+    .enter().append('circle')
+    .attr("cx", function(d, i) { 
+        return x(d.time); 
+    })
+    .attr("cy", function(d, i) {
+        return y(d.the_course_as_a_whole);
+    })
+    .attr('r', 6)
+    .style("opacity", 0)
     .on('mouseover', tip.show)
     .on('mouseout', tip.hide);
 

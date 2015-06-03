@@ -30,16 +30,12 @@ body {
 json_data = [{ "YEAR": 2012, "MONTH": 1,  "MMM": "JAN", "Total": 36, "Completed": 21, "Canceled": 10,  "Aborted": 5 },
             { "YEAR": 2012, "MONTH": 2,  "MMM": "FEB", "Total": 60, "Completed": 30, "Canceled": 21, "Aborted": 9 }];
 
-var data3 = [{"YEAR":2012,"MONTH":1,"MMM":"JAN","values":
-                 [{"name":"Total","value":36},
-                 {"name":"Completed","value":21},
-                 {"name":"Canceled","value":10},
-                 {"name":"Aborted","value":5}]},
-            {"YEAR":2012,"MONTH":2,"MMM":"FEB","values":
-                 [{"name":"Total","value":60},
-                 {"name":"Completed","value":30},
-                 {"name":"Canceled","value":21},
-                 {"name":"Aborted","value":9}]}];
+var data3 = [{"key":"JAN","values":
+                 [{"key":"the_course_as_a_whole","value":36},
+                 {"key":"instructors_effectiveness","value":21}]},
+            {"key":"FEB","values":
+                 [{"key":"the_course_as_a_whole","value":60},
+                 {"key":"instructors_effectiveness","value":9}]}];
 
 var data1 = [ // TODO convert to format similar to data3
   {
@@ -101,7 +97,7 @@ var data1 = [ // TODO convert to format similar to data3
     "the_course_as_a_whole": 4.9,
     "time": 132,
     "professor": "Ilene Shen",
-    "course_whole_code": "cse403",
+    "course_whole_code": "CSE403",
     "instructors_effectiveness": "5.0",
   },
   {
@@ -171,6 +167,7 @@ function modifyData(data, key) { // TODO change to push all five ratings!
                     var course = JSON.parse(attribute);
                     var rating = existingData[attribute];
                     course["the_course_as_a_whole"] = parseFloat((rating["sum"] / rating["count"]).toFixed(2));
+                    course["instructors_effectiveness"] = parseFloat((rating["sum"] / rating["count"]).toFixed(2));
                     newData.push(course);
                 }
             }
@@ -194,12 +191,9 @@ function modifyData(data, key) { // TODO change to push all five ratings!
                 instructors_effectiveness[course_whole_code] = dataPoint.instructors_effectiveness;
             }
 
-            arr[0] = d3.entries(course_as_a_whole);
-            arr[1] = d3.entries(instructors_effectiveness);
-            console.log("final", d3.entries(arr));
-            console.log("whole", d3.entries(course_as_a_whole));
-            console.log("prof", d3.entries(instructors_effectiveness));
-
+            arr["the_course_as_a_whole"] = d3.entries(course_as_a_whole);
+            arr["instructors_effectiveness"] = d3.entries(instructors_effectiveness);
+            arr = d3.entries(arr);
             // Set to previous format
             /*for (var attribute in existingData) {
                 if( existingData.hasOwnProperty(attribute) ) {
@@ -212,6 +206,7 @@ function modifyData(data, key) { // TODO change to push all five ratings!
             }*/
 
             //return newData;
+            return arr;
         }
 
 var data2 = d3.nest()
@@ -223,9 +218,6 @@ var data2 = d3.nest()
     })
     .entries(data1);
 
-modifyData2(data1, "key");
-console.log("before", JSON.stringify(data1));
-console.log("ours", data2);
 // width = 960 - 40 - 20 = 900
 // height = 500 - 20 - 30 = 450
 var margin = { top: 20, right: 20, bottom: 30, left: 40 },
@@ -302,36 +294,37 @@ var svg = d3.select("body").append("svg")
 //                data = d3.nest()
 //                    .key(function (d) { return d.MMM + " " + d.YEAR; })
 //                    .entries(json_data)
-data = data3;//json_data
-
+data = modifyData2(modifyData(data1, "key"), "key");//data3;//json_data
+console.log("theirs", data3);
+console.log("mine", modifyData2(modifyData(data1, "key"), "key"));
 
 // seriesNames = "Total", "Completed", "Canceled" and "Aborted"               See, we're filtering out "YEAR", "MONTH" and "MMM"
 //var seriesNames = d3.keys(json_data[0]).filter(function (key) { return (key !== "YEAR") && (key !== "MONTH") && (key !== "MMM"); });
 //                alert(JSON.stringify(seriesNames));
 //                alert(seriesNames);
 
-var seriesNames = ["Total", "Completed", "Canceled", "Aborted"];
+var seriesNames = ["CSE142", "CSE143", "Hiiiiii", "CSE403", "CSE311", "CSE312", "CSE333"];
 //data.forEach(function (d) {
 //    d.values = seriesNames.map(function (name) { return { name: name, value: +d[name] }; });
     //alert("hi --- " + JSON.stringify(d.Flights));
 //});
 
 //alert(JSON.stringify(data));
-console.log("theirs", seriesNames);
 
 //x0.domain(data.map(function (d) { return d.State; }));
 // Change State to be MMM, YEAR (for example: "Jan 2012") Could change this to Jan '12
-x0.domain(data.map(function (d) { return d.MMM + " " + d.YEAR; }));
+x0.domain(data.map(function (d) { return d.key; }));
+
 //alert(JSON.stringify(data.map(function (d) { return d.MMM + " " + d.YEAR; })));
 
 //                //x1.domain(seriesNames).rangeRoundBands([0, x0.rangeBand()]);
 x1.domain(seriesNames).rangeRoundBands([0, x0.rangeBand()]);
 
+
 //                //y.domain([0, d3.max(data, function (d) { return d3.max(d.ages, function (d) { return d.value; }); })]);
 //                // Make the y domain go from 0 up to the max of d.Total (Total flights)
 //                y.domain([0, d3.max(data, function (d) { return d3.max(d.Total); })]);
-y.domain([0, (10 + d3.max(data, function (d) { return d3.max(d.values, function (d) { return d.value; }); }))]);
-
+y.domain([0, (10 + d3.max(data, function (d) { return d3.max(d.value, function (d) { return d.value; }); }))]);
 
 // The axis business
 svg.append("g")
@@ -362,17 +355,17 @@ var state = svg.selectAll(".state")
     .data(data)
 .enter().append("g")
     .attr("class", "g")
-    .attr("transform", function (d) { return "translate(" + x0(d.MMM + " " + d.YEAR) + ",0)"; });
+    .attr("transform", function (d) { return "translate(" + x0(d.key) + ",0)"; });
 
 //alert(JSON.stringify(d.Flights[0]));
 state.selectAll("rect")
-    .data(function (d) { return d.values; })
+    .data(function (d) { return d.value; })
 .enter().append("rect")
     .attr("width", x1.rangeBand())
-    .attr("x", function (d) { return x1(d.name); })
+    .attr("x", function (d) { return x1(d.key); })
     .attr("y", function (d) { return y(d.value); })
     .attr("height", function (d) { return height - y(d.value); })
-    .style("fill", function (d) { return color(d.name); });
+    .style("fill", function (d) { return color(d.key); });
 
 
 var legend = svg.selectAll(".legend")

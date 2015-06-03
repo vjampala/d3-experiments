@@ -178,32 +178,30 @@ function modifyData(data, key) { // TODO change to push all five ratings!
             return newData;
         }
 
+//[{"the_course_as_a_whole":5,"time":131,"professor":"Allison Obourn","course_whole_code":"CSE142","instructors_effectiveness":"3.2"},
+//{"the_course_as_a_whole":2,"time":131,"professor":"Allison Obourn","course_whole_code":"CSE142","instructors_effectiveness":"4.9"},
+//{"the_course_as_a_whole":5,"time":131,"professor":"Stuart Reges","course_whole_code":"CSE143","instructors_effectiveness":"1.7"},
         function modifyData2(data, key) {
             var newData = []
-            var existingData = {}
+            var course_as_a_whole = {}
+            var instructors_effectiveness = {}
+            var arr = {}
 
-            // Merge averages
             for(var i = 0; i < data.length; i++) {
                 var dataPoint = data[i];
-                var rating = dataPoint.the_course_as_a_whole;
-                var prevCount = 0;
-
-                // To use as key
-                dataPointString = JSON.stringify({"course_whole_code": dataPoint["course_whole_code"]});
-
-                // Rating already exists.  So keep track that this is a duplicate
-                if (dataPointString in existingData) {
-                    var prevRating = existingData[dataPointString];
-                    rating = prevRating["sum"] + rating;
-                    prevCount = prevRating["count"];
-                }
-
-                // Updated stored rating for a class
-                existingData[dataPointString] = {"sum": rating, "count": prevCount + 1};
+                var course_whole_code = dataPoint["course_whole_code"];
+                course_as_a_whole[course_whole_code] = dataPoint.the_course_as_a_whole;
+                instructors_effectiveness[course_whole_code] = dataPoint.instructors_effectiveness;
             }
 
+            arr[0] = d3.entries(course_as_a_whole);
+            arr[1] = d3.entries(instructors_effectiveness);
+            console.log("final", d3.entries(arr));
+            console.log("whole", d3.entries(course_as_a_whole));
+            console.log("prof", d3.entries(instructors_effectiveness));
+
             // Set to previous format
-            for (var attribute in existingData) {
+            /*for (var attribute in existingData) {
                 if( existingData.hasOwnProperty(attribute) ) {
                     var course = JSON.parse(attribute);
                     var rating = existingData[attribute];
@@ -211,17 +209,22 @@ function modifyData(data, key) { // TODO change to push all five ratings!
                     course["instructors_effectiveness"] = parseFloat((rating["sum"] / rating["count"]).toFixed(2));
                     newData.push(course);
                 }
-            }
+            }*/
 
-            return newData;
+            //return newData;
         }
 
 var data2 = d3.nest()
     .key(function(d) {
         return d.professor;
     })
+    .key(function(d) {
+        return d.course_whole_code;
+    })
     .entries(data1);
 
+modifyData2(data1, "key");
+console.log("before", JSON.stringify(data1));
 console.log("ours", data2);
 // width = 960 - 40 - 20 = 900
 // height = 500 - 20 - 30 = 450

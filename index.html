@@ -41,6 +41,7 @@ body {
 <script src="http://d3js.org/d3.v3.js"></script>
 <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
 <script>
+var minTime = Number.MAX_VALUE;
 function modifyData(data) {
     var newData = []
     var existingData = {}
@@ -51,6 +52,11 @@ function modifyData(data) {
         var rating = dataPoint.the_course_as_a_whole;
         var prevCount = 0;
         delete dataPoint["the_course_as_a_whole"];
+
+        // Keep track of min time
+        if (dataPoint["time"] < minTime) {
+            minTime = dataPoint["time"];
+        }
 
         // To use as key
         dataPointString = JSON.stringify(dataPoint);
@@ -66,100 +72,125 @@ function modifyData(data) {
         existingData[dataPointString] = {"sum": rating, "count": prevCount + 1};
     }
 
-    // Set to previous format 
+    // Set to previous format and add incrementing ticks
+    minTime = Math.floor(minTime / 10) * 10;
     for (var key in existingData) {
         if( existingData.hasOwnProperty(key) ) {
             var course = JSON.parse(key);
             var rating = existingData[key];
             course["the_course_as_a_whole"] = parseFloat((rating["sum"] / rating["count"]).toFixed(2));
+
             newData.push(course);
         }
     }    
     return newData;
 }
 
+var incrementedTime = function(time) {
+    var newTime = time - minTime;
+    return newTime - (Math.floor(newTime / 10) * 6);
+}
+
 var data1 = [
   {
-    "the_course_as_a_whole": 5,
-    "time": 131,
-    "professor": "Allison Obourn",
-    "course_whole_code": "Hiiiiii",
-  },
-  {
     "the_course_as_a_whole": 2,
-    "time": 131,
-    "professor": "Allison Obourn",
-    "course_whole_code": "Hiiiiii",
-  },
-  {
-    "the_course_as_a_whole": 5,
-    "time": 131,
+    "time": 122,
     "professor": "Stuart Reges",
     "course_whole_code": "Hiiiiii",
   },
   {
     "the_course_as_a_whole": 1,
-    "time": 131,
+    "time": 123,
+    "professor": "Stuart Reges",
+    "course_whole_code": "Hiiiiii",
+  },
+  {
+    "the_course_as_a_whole": 5,
+    "time": 123,
+    "professor": "Allison Obourn",
+    "course_whole_code": "Hiiiiii",
+  },
+  {
+    "the_course_as_a_whole": 5,
+    "time": 132,
+    "professor": "Allison Obourn",
+    "course_whole_code": "Hiiiiii",
+  },
+  {
+    "the_course_as_a_whole": 2,
+    "time": 132,
+    "professor": "Allison Obourn",
+    "course_whole_code": "Hiiiiii",
+  },
+  {
+    "the_course_as_a_whole": 5,
+    "time": 132,
+    "professor": "Stuart Reges",
+    "course_whole_code": "Hiiiiii",
+  },
+  {
+    "the_course_as_a_whole": 1,
+    "time": 132,
     "professor": "Stuart Reges",
     "course_whole_code": "Hiiiiii",
   },
   {
     "the_course_as_a_whole": 4,
-    "time": 131,
+    "time": 132,
     "professor": "Stuart Reges",
     "course_whole_code": "Hiiiiii",
   },
   {
     "the_course_as_a_whole": 4.3,
-    "time": 131,
+    "time": 132,
     "professor": "Ilene Shen",
     "course_whole_code": "Hiiiiii",
   },
   {
     "the_course_as_a_whole": 3,
-    "time": 132,
+    "time": 133,
     "professor": "Allison Obourn",
     "course_whole_code": "Hiiiiii",
   },
   {
     "the_course_as_a_whole": 3.8,
-    "time": 132,
+    "time": 133,
     "professor": "Stuart Reges",
     "course_whole_code": "Hiiiiii",
   },
   {
     "the_course_as_a_whole": 4.9,
-    "time": 132,
+    "time": 133,
     "professor": "Ilene Shen",
     "course_whole_code": "Hiiiiii",
   },
   {
     "the_course_as_a_whole": 4.2,
-    "time": 142,
+    "time": 140,
     "professor": "Allison Obourn",
     "course_whole_code": "Hiiiiii",
   },
   {
     "the_course_as_a_whole": 4.9,
-    "time": 142,
+    "time": 140,
     "professor": "Stuart Reges",
     "course_whole_code": "Hiiiiii",
   },
   {
     "the_course_as_a_whole": 3,
-    "time": 142,
+    "time": 140,
     "professor": "Ilene Shen",
     "course_whole_code": "Hiiiiii",
   },
   {
     "the_course_as_a_whole": 5,
-    "time": 142,
+    "time": 140,
     "professor": "Ilene Shen",
     "course_whole_code": "Hiiiiii",
   },
   {
     "the_course_as_a_whole": 5,
-    "time": 142,
+    "time": 140,
     "professor": "Ilene Shen",
     "course_whole_code": "Hiiiiii",
   }
@@ -222,7 +253,7 @@ var yAxis = d3.svg.axis()
 var line = d3.svg.line()
 //    .interpolate("linear") // COMMENT OUT FOR STRAIGHT LINES
     .x(function (d) {
-        return x(d.time);
+        return x(incrementedTime(d.time));
     })
     .y(function (d) {
     return y(d.the_course_as_a_whole);
@@ -254,15 +285,14 @@ color.domain(data.map(function (d) { return d.key; }));
 var timeValues = [];
 data.forEach(function (kv) {
     kv.values.forEach(function (d) {
-        d.time = d.time;
-        timeValues.push(d.time);
+        timeValues.push(incrementedTime(d.time));
     });
 });
 
 var cities = data;
 
-var minX = d3.min(data, function (kv) { return d3.min(kv.values, function (d) { return d.time; }) });
-var maxX = d3.max(data, function (kv) { return d3.max(kv.values, function (d) { return d.time; }) });
+var minX = d3.min(data, function (kv) { return d3.min(kv.values, function (d) { return incrementedTime(d.time); }) });
+var maxX = d3.max(data, function (kv) { return d3.max(kv.values, function (d) { return incrementedTime(d.time); }) });
 var minY = d3.min(data, function (kv) { return d3.min(kv.values, function (d) { return d.the_course_as_a_whole; }) });
 var maxY = d3.max(data, function (kv) { return d3.max(kv.values, function (d) { return d.the_course_as_a_whole; }) });
 
@@ -271,7 +301,10 @@ x.domain([minX, maxX]);
 y.domain([0, 5]);
 
 function getPrettyTime(time) {
-    var quarterNum = time.substr(time.length - 1);
+
+    time = (Math.floor(time / 4) * 10) + (time % 4) + minTime;
+    var sTime = time.toString();
+    var quarterNum = sTime.substr(sTime.length - 1);
     var quarterStr = "str";
     if (quarterNum === "0") {
         quarterStr = "Wi";
@@ -282,12 +315,12 @@ function getPrettyTime(time) {
     } else {
         quarterStr = "Au";
     }
-    return quarterStr.concat(time.substring(0, time.length - 1));
+    return quarterStr.concat(sTime.substring(0, sTime.length - 1));
 }
 
 timeValues = d3.set(timeValues).values(); 
 xAxis.tickValues(timeValues);
-xAxis.tickFormat(function(d) { return getPrettyTime(d); })
+xAxis.tickFormat(function(d) { return getPrettyTime(d);}) 
 
 // Set y-axis tick marks
 yAxis.tickValues([0, 1, 2, 3, 4, 5]);
@@ -342,7 +375,8 @@ svg.selectAll('g.dot')
     })
     .enter().append('circle')
     .attr("cx", function(d, i) { 
-        return x(d.time); 
+        //return x(d.incremental_tick); 
+        return x(incrementedTime(d.time));
     })
     .attr("cy", function(d, i) {
         return y(d.the_course_as_a_whole);
@@ -361,7 +395,8 @@ svg.selectAll('g.largeDot')
     })
     .enter().append('circle')
     .attr("cx", function(d, i) { 
-        return x(d.time); 
+        //return x(d.incremental_tick); 
+        return x(incrementedTime(d.time)); 
     })
     .attr("cy", function(d, i) {
         return y(d.the_course_as_a_whole);

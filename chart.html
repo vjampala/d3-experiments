@@ -26,7 +26,18 @@
 }
 
 .bar {
-  fill: steelblue;
+  fill: pink;
+}
+
+.d3-tip {
+    line-height: 0.5;
+    font-weight: bold;
+    padding: 5px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff !important;
+    border-radius: 2px;
+    text-transform: capitalize;
+    fill: #fff !important; 
 }
 
 /*.x.axis path {
@@ -36,15 +47,10 @@
 </style>
 <body id="bar-chart">
 <script src="http://d3js.org/d3.v3.min.js"></script>
-<!--<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>-->
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
 <script>
-/*
-+ Make the bars less fat
-+ Clean up code
-+ Add hover
 
-+ Pretty print x axis labels
-*/
+/* Wishlist: Make the bars less fat*/
 var data1 = [
   {
     "the_course_as_a_whole": 5,
@@ -280,14 +286,14 @@ var svg = d3.select("#bar-chart").append("svg")
 
 data = reorderData(modifyData(data1, ["the_course_as_a_whole", "instructors_effectiveness"]), ["the_course_as_a_whole", "instructors_effectiveness"]);
 
-/*var tip = d3.tip() 
+var tip = d3.tip() 
     .attr('class', 'd3-tip')
     .offset([-10, 0])
     .html(function(d) {
-        return d.key;
+        return d.key.concat(": ").concat(d.value);
     })
 
-svg.call(tip);*/
+svg.call(tip);
 courseNames = d3.set(courseNames).values();
 
 x0.domain(data.map(function (d) { return d.key; }));
@@ -328,16 +334,24 @@ state.selectAll("rect")
     .attr("height", function (d) { return height - y(d.value); })
     .style("fill", function (d) { return color(d.key); });
 
-  /*svg.selectAll(".bar")
-      .data(data)
+  svg.selectAll(".hover")
+    .data(data)
+    .enter().append("g")
+    .attr("class", "g")
+    .attr("transform", function (d) { return "translate(" + x0(d.key) + ",0)"; })
+    .selectAll("rect")
+    .data(function(d) {
+        return d.value;
+    })
     .enter().append("rect")
-      .attr("class", "bar")
+        .attr("class", "hover")
       .attr("x", function(d) { return x1(d.key); })
       .attr("width", x1.rangeBand())
       .attr("y", function(d) { return y(d.value); })
       .attr("height", function(d) { return height - y(d.value); })
       .on('mouseover', tip.show)
-      .on('mouseout', tip.hide);*/
+      .on('mouseout', tip.hide)
+      .style("fill", function (d) { return color(d.key); });
 
 var legend = svg.selectAll(".legend")
     .data(courseNames.slice().reverse())

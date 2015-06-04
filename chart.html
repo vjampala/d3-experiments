@@ -36,13 +36,14 @@
 </style>
 <body id="bar-chart">
 <script src="http://d3js.org/d3.v3.min.js"></script>
+<!--<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>-->
 <script>
 /*
 + Make the bars less fat
-+ Update modifyData to perform calculations for all keys
-+ Pass the right values to modifyData 1 and 2
-+ Pretty print x axis labels
 + Clean up code
++ Add hover
+
++ Pretty print x axis labels
 */
 var data1 = [
   {
@@ -50,97 +51,98 @@ var data1 = [
     "time": 131,
     "professor": "Allison Obourn",
     "course_whole_code": "CSE142",
-    "instructors_effectiveness": "3.2",
+    "instructors_effectiveness": 3.2,
   },
   {
     "the_course_as_a_whole": 2,
     "time": 131,
     "professor": "Allison Obourn",
     "course_whole_code": "CSE142",
-    "instructors_effectiveness": "4.9",
+    "instructors_effectiveness": 4.9,
   },
   {
     "the_course_as_a_whole": 5,
     "time": 131,
     "professor": "Stuart Reges",
     "course_whole_code": "CSE143",
-    "instructors_effectiveness": "1.7",
+    "instructors_effectiveness": 1.7,
   },
   {
     "the_course_as_a_whole": 1,  
     "time": 131,
     "professor": "Stuart Reges",
     "course_whole_code": "CSE143",
+    "instructors_effectiveness": 2.2
   },
   {
     "the_course_as_a_whole": 4,
     "time": 131,
     "professor": "Stuart Reges",
     "course_whole_code": "CSE142",
-    "instructors_effectiveness": "2.3",
+    "instructors_effectiveness": 2.3,
   },
   {
     "the_course_as_a_whole": 4.3,
     "time": 131,
     "professor": "Ilene Shen",
     "course_whole_code": "CSE142",
-    "instructors_effectiveness": "4.9",
+    "instructors_effectiveness": 4.9,
   },
   {
     "the_course_as_a_whole": 3,
     "time": 132,
     "professor": "Allison Obourn",
     "course_whole_code": "CSE143",
-    "instructors_effectiveness": "3.1",
+    "instructors_effectiveness": 3.1,
   },
   {
     "the_course_as_a_whole": 3.8,
     "time": 132,
     "professor": "Stuart Reges",
     "course_whole_code": "Hiiiiii",
-    "instructors_effectiveness": "4.2",
+    "instructors_effectiveness": 4.2,
   },
   {
     "the_course_as_a_whole": 4.9,
     "time": 132,
     "professor": "Ilene Shen",
     "course_whole_code": "CSE403",
-    "instructors_effectiveness": "5.0",
+    "instructors_effectiveness": 5.0,
   },
   {
     "the_course_as_a_whole": 4.2,
     "time": 142,
     "professor": "Allison Obourn",
     "course_whole_code": "CSE311",
-    "instructors_effectiveness": "2.4",
+    "instructors_effectiveness": 2.4,
   },
   {
     "the_course_as_a_whole": 4.9,
     "time": 142,
     "professor": "Stuart Reges",
     "course_whole_code": "CSE312",
-    "instructors_effectiveness": "3.2",
+    "instructors_effectiveness": 3.2,
   },
   {
     "the_course_as_a_whole": 3,
     "time": 142,
     "professor": "Ilene Shen",
     "course_whole_code": "CSE333",
-    "instructors_effectiveness": "3.6",
+    "instructors_effectiveness": 3.6,
   },
   {
     "the_course_as_a_whole": 5,
     "time": 142,
     "professor": "Ilene Shen",
     "course_whole_code": "CSE403",
-    "instructors_effectiveness": "4.6",
+    "instructors_effectiveness": 4.6,
   },
   {
     "the_course_as_a_whole": 5,
     "time": 142,
     "professor": "Ilene Shen",
     "course_whole_code": "CSE311",
-    "instructors_effectiveness": "4.7",
+    "instructors_effectiveness": 4.7,
   }
 ];
 
@@ -156,28 +158,42 @@ var KEY_TO_HEADER = {
     };
 
 var courseNames = [];
-function modifyData(data, keys) { // TODO change to push all five ratings!
+function modifyData(data, keys) {
             var newData = []
-            var existingData = {}
+            var existingData = {};
+            var coursesToRatings = {};
+            var coursesToCounts = {};
 
             // Merge averages
             for(var i = 0; i < data.length; i++) {
                 var dataPoint = data[i];
-                var rating = dataPoint.the_course_as_a_whole;
-                var prevCount = 0;
+
+                var ratings = coursesToRatings[dataPoint.course_whole_code];
+                if (ratings == undefined) {
+                  ratings = [];
+                  for(var j = 0; j < keys.length; j++) {
+                    ratings[j] = 0;
+                  }
+                }
+                var counts = coursesToCounts[dataPoint.course_whole_code];
+                if (counts == undefined) {
+                  counts = [];
+                  for(var j = 0; j < keys.length; j++) {
+                    counts[j] = 0;
+                  }
+                }
+                for(var j = 0; j < keys.length; j++) {
+                  ratings[j] = dataPoint[keys[j]] + ratings[j];
+                  counts[j]++;
+                }
+                coursesToRatings[dataPoint.course_whole_code] = ratings;
+                coursesToCounts[dataPoint.course_whole_code] = counts;
 
                 // To use as key
                 dataPointString = JSON.stringify({"course_whole_code": dataPoint["course_whole_code"]});
 
-                // Rating already exists.  So keep track that this is a duplicate
-                if (dataPointString in existingData) {
-                    var prevRating = existingData[dataPointString];
-                    rating = prevRating["sum"] + rating;
-                    prevCount = prevRating["count"];
-                }
-
                 // Updated stored rating for a class
-                existingData[dataPointString] = {"sum": rating, "count": prevCount + 1};
+                existingData[dataPointString] = {};
             }
 
             // Set to previous format
@@ -185,8 +201,13 @@ function modifyData(data, keys) { // TODO change to push all five ratings!
                 if( existingData.hasOwnProperty(attribute) ) {
                     var course = JSON.parse(attribute);
                     var rating = existingData[attribute];
-                    course["the_course_as_a_whole"] = parseFloat((rating["sum"] / rating["count"]).toFixed(2));
-                    course["instructors_effectiveness"] = parseFloat((rating["sum"] / rating["count"]).toFixed(2));
+
+                    var ratings = coursesToRatings[course.course_whole_code];
+                    var counts = coursesToCounts[course.course_whole_code];
+
+                    for(var i = 0; i < keys.length; i++) {
+                      course[keys[i]] = parseFloat((ratings[i] / counts[i]).toFixed(2));
+                    }
                     newData.push(course);
                 }
             }
@@ -228,11 +249,11 @@ var data2 = d3.nest()
     .entries(data1);
 
 var margin = { top: 20, right: 20, bottom: 30, left: 40 },
-    width = 960 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+    width = 760 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
 
 var x0 = d3.scale.ordinal()
-    .rangeRoundBands([0, width], .1);
+    .rangeRoundBands([0, width - 100], .1);
 
 var x1 = d3.scale.ordinal();
 
@@ -259,6 +280,14 @@ var svg = d3.select("#bar-chart").append("svg")
 
 data = reorderData(modifyData(data1, ["the_course_as_a_whole", "instructors_effectiveness"]), ["the_course_as_a_whole", "instructors_effectiveness"]);
 
+/*var tip = d3.tip() 
+    .attr('class', 'd3-tip')
+    .offset([-10, 0])
+    .html(function(d) {
+        return d.key;
+    })
+
+svg.call(tip);*/
 courseNames = d3.set(courseNames).values();
 
 x0.domain(data.map(function (d) { return d.key; }));
@@ -299,6 +328,16 @@ state.selectAll("rect")
     .attr("height", function (d) { return height - y(d.value); })
     .style("fill", function (d) { return color(d.key); });
 
+  /*svg.selectAll(".bar")
+      .data(data)
+    .enter().append("rect")
+      .attr("class", "bar")
+      .attr("x", function(d) { return x1(d.key); })
+      .attr("width", x1.rangeBand())
+      .attr("y", function(d) { return y(d.value); })
+      .attr("height", function(d) { return height - y(d.value); })
+      .on('mouseover', tip.show)
+      .on('mouseout', tip.hide);*/
 
 var legend = svg.selectAll(".legend")
     .data(courseNames.slice().reverse())
@@ -307,18 +346,15 @@ var legend = svg.selectAll(".legend")
     .attr("transform", function (d, i) { return "translate(0," + i * 20 + ")"; });
 
 legend.append("rect")
-    .attr("x", width - 18)
+    .attr("x", width - 18 - 100 + 15)
     .attr("width", 18)
     .attr("height", 18)
     .style("fill", color);
 
 legend.append("text")
-    .attr("x", width - 24)
+    .attr("x", width - 24 + 30 - 100 + 15)
     .attr("y", 9)
     .attr("dy", ".35em")
-    .style("text-anchor", "end")
-    .text(function (d) { return d; })
-    .on("click", function (d) {
-        alert(d);
-    });
+    .style("text-anchor", "start")
+    .text(function (d) { return d; });
 </script>

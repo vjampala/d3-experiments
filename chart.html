@@ -1,0 +1,374 @@
+<!-- Code borrowed from http://bl.ocks.org/mbostock/3887051 with gratitude.-->
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+#bar-chart {
+  font: 10px sans-serif;
+  display: block;
+  width: 100%;
+  float: left;
+  margin-top: 5px;
+  margin-bottom: 0px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #7f8c8d;
+  shape-rendering: crispEdges;
+}
+
+.axis text {
+  fill: #7f8c8d !important;
+}
+
+.bar {
+  fill: pink;
+}
+
+.d3-tip {
+    line-height: 0.5;
+    font-weight: bold;
+    padding: 5px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff !important;
+    border-radius: 2px;
+    text-transform: capitalize;
+    fill: #fff !important; 
+}
+
+/*.x.axis path {
+  display: none;
+}*/
+
+</style>
+<body id="bar-chart">
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+<script>
+
+/* Wishlist: Make the bars less fat*/
+var data1 = [
+  {
+    "the_course_as_a_whole": 5,
+    "time": 131,
+    "professor": "Allison Obourn",
+    "course_whole_code": "CSE142",
+    "instructors_effectiveness": 3.2,
+  },
+  {
+    "the_course_as_a_whole": 2,
+    "time": 131,
+    "professor": "Allison Obourn",
+    "course_whole_code": "CSE142",
+    "instructors_effectiveness": 4.9,
+  },
+  {
+    "the_course_as_a_whole": 5,
+    "time": 131,
+    "professor": "Stuart Reges",
+    "course_whole_code": "CSE143",
+    "instructors_effectiveness": 1.7,
+  },
+  {
+    "the_course_as_a_whole": 1,  
+    "time": 131,
+    "professor": "Stuart Reges",
+    "course_whole_code": "CSE143",
+    "instructors_effectiveness": 2.2
+  },
+  {
+    "the_course_as_a_whole": 4,
+    "time": 131,
+    "professor": "Stuart Reges",
+    "course_whole_code": "CSE142",
+    "instructors_effectiveness": 2.3,
+  },
+  {
+    "the_course_as_a_whole": 4.3,
+    "time": 131,
+    "professor": "Ilene Shen",
+    "course_whole_code": "CSE142",
+    "instructors_effectiveness": 4.9,
+  },
+  {
+    "the_course_as_a_whole": 3,
+    "time": 132,
+    "professor": "Allison Obourn",
+    "course_whole_code": "CSE143",
+    "instructors_effectiveness": 3.1,
+  },
+  {
+    "the_course_as_a_whole": 3.8,
+    "time": 132,
+    "professor": "Stuart Reges",
+    "course_whole_code": "Hiiiiii",
+    "instructors_effectiveness": 4.2,
+  },
+  {
+    "the_course_as_a_whole": 4.9,
+    "time": 132,
+    "professor": "Ilene Shen",
+    "course_whole_code": "CSE403",
+    "instructors_effectiveness": 5.0,
+  },
+  {
+    "the_course_as_a_whole": 4.2,
+    "time": 142,
+    "professor": "Allison Obourn",
+    "course_whole_code": "CSE311",
+    "instructors_effectiveness": 2.4,
+  },
+  {
+    "the_course_as_a_whole": 4.9,
+    "time": 142,
+    "professor": "Stuart Reges",
+    "course_whole_code": "CSE312",
+    "instructors_effectiveness": 3.2,
+  },
+  {
+    "the_course_as_a_whole": 3,
+    "time": 142,
+    "professor": "Ilene Shen",
+    "course_whole_code": "CSE333",
+    "instructors_effectiveness": 3.6,
+  },
+  {
+    "the_course_as_a_whole": 5,
+    "time": 142,
+    "professor": "Ilene Shen",
+    "course_whole_code": "CSE403",
+    "instructors_effectiveness": 4.6,
+  },
+  {
+    "the_course_as_a_whole": 5,
+    "time": 142,
+    "professor": "Ilene Shen",
+    "course_whole_code": "CSE311",
+    "instructors_effectiveness": 4.7,
+  }
+];
+
+var KEY_TO_HEADER = {
+        "course_whole_code": "Course Code",
+        "professor": "Instructor",
+        "the_course_as_a_whole": "Overall",
+        "the_course_content": "Content",
+        "amount_learned": "Amount Learned",
+        "instructors_effectiveness": "Teaching",
+        "grading_techniques": "Grading",
+        "percent_enrolled" : "% Completed"
+    };
+
+var courseNames = [];
+function modifyData(data, keys) {
+            var newData = []
+            var existingData = {};
+            var coursesToRatings = {};
+            var coursesToCounts = {};
+
+            // Merge averages
+            for(var i = 0; i < data.length; i++) {
+                var dataPoint = data[i];
+
+                var ratings = coursesToRatings[dataPoint.course_whole_code];
+                if (ratings == undefined) {
+                  ratings = [];
+                  for(var j = 0; j < keys.length; j++) {
+                    ratings[j] = 0;
+                  }
+                }
+                var counts = coursesToCounts[dataPoint.course_whole_code];
+                if (counts == undefined) {
+                  counts = [];
+                  for(var j = 0; j < keys.length; j++) {
+                    counts[j] = 0;
+                  }
+                }
+                for(var j = 0; j < keys.length; j++) {
+                  ratings[j] = dataPoint[keys[j]] + ratings[j];
+                  counts[j]++;
+                }
+                coursesToRatings[dataPoint.course_whole_code] = ratings;
+                coursesToCounts[dataPoint.course_whole_code] = counts;
+
+                // To use as key
+                dataPointString = JSON.stringify({"course_whole_code": dataPoint["course_whole_code"]});
+
+                // Updated stored rating for a class
+                existingData[dataPointString] = {};
+            }
+
+            // Set to previous format
+            for (var attribute in existingData) {
+                if( existingData.hasOwnProperty(attribute) ) {
+                    var course = JSON.parse(attribute);
+                    var rating = existingData[attribute];
+
+                    var ratings = coursesToRatings[course.course_whole_code];
+                    var counts = coursesToCounts[course.course_whole_code];
+
+                    for(var i = 0; i < keys.length; i++) {
+                      course[keys[i]] = parseFloat((ratings[i] / counts[i]).toFixed(2));
+                    }
+                    newData.push(course);
+                }
+            }
+
+            return newData;
+        }
+
+        function reorderData(data, keys) {
+            var ratings = {}
+            for(var i = 0; i < keys.length; i++) {
+              ratings[i] = {};
+            }
+            var arr = {}
+
+            for(var i = 0; i < data.length; i++) {
+                var dataPoint = data[i];
+                var course_whole_code = dataPoint["course_whole_code"];
+                courseNames.push(course_whole_code);
+                for(var j = 0; j < keys.length; j++) {
+                  ratings[j][course_whole_code] = dataPoint[keys[j]];
+                }
+            }
+
+            for(var i = 0; i < keys.length; i++) {
+              arr[keys[i]] = d3.entries(ratings[i]);
+            }
+            arr = d3.entries(arr);
+
+            return arr;
+        }
+
+var data2 = d3.nest()
+    .key(function(d) {
+        return d.professor;
+    })
+    .key(function(d) {
+        return d.course_whole_code;
+    })
+    .entries(data1);
+
+var margin = { top: 20, right: 20, bottom: 30, left: 40 },
+    width = 760 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+
+var x0 = d3.scale.ordinal()
+    .rangeRoundBands([0, width - 100], .1);
+
+var x1 = d3.scale.ordinal();
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var color = d3.scale.category10();
+
+var xAxis = d3.svg.axis()
+    .scale(x0)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+yAxis.tickValues([0, 1, 2, 3, 4, 5]);
+yAxis.tickFormat(d3.format(".0f"));
+
+var svg = d3.select("#bar-chart").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+data = reorderData(modifyData(data1, ["the_course_as_a_whole", "instructors_effectiveness"]), ["the_course_as_a_whole", "instructors_effectiveness"]);
+
+var tip = d3.tip() 
+    .attr('class', 'd3-tip')
+    .offset([-10, 0])
+    .html(function(d) {
+        return d.key.concat(": ").concat(d.value);
+    })
+
+svg.call(tip);
+courseNames = d3.set(courseNames).values();
+
+x0.domain(data.map(function (d) { return d.key; }));
+
+x1.domain(courseNames).rangeRoundBands([0, x0.rangeBand()]);
+
+y.domain([0, 5]);
+
+svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis);
+
+svg.append("g")
+    .attr("class", "y axis")
+    .call(yAxis)
+.append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 8 - margin.left)
+    .attr("x",0 - (height / 2))
+    .attr("dy", ".71em")
+    .style("text-anchor", "middle")
+    .text("Rating");
+
+
+var state = svg.selectAll(".state")
+    .data(data)
+.enter().append("g")
+    .attr("class", "g")
+    .attr("transform", function (d) { return "translate(" + x0(d.key) + ",0)"; });
+
+state.selectAll("rect")
+    .data(function (d) { return d.value; })
+.enter().append("rect")
+    .attr("width", x1.rangeBand())
+    .attr("x", function (d) { return x1(d.key); })
+    .attr("y", function (d) { return y(d.value); })
+    .attr("height", function (d) { return height - y(d.value); })
+    .style("fill", function (d) { return color(d.key); });
+
+  svg.selectAll(".hover")
+    .data(data)
+    .enter().append("g")
+    .attr("class", "g")
+    .attr("transform", function (d) { return "translate(" + x0(d.key) + ",0)"; })
+    .selectAll("rect")
+    .data(function(d) {
+        return d.value;
+    })
+    .enter().append("rect")
+        .attr("class", "hover")
+      .attr("x", function(d) { return x1(d.key); })
+      .attr("width", x1.rangeBand())
+      .attr("y", function(d) { return y(d.value); })
+      .attr("height", function(d) { return height - y(d.value); })
+      .on('mouseover', tip.show)
+      .on('mouseout', tip.hide)
+      .style("fill", function (d) { return color(d.key); });
+
+var legend = svg.selectAll(".legend")
+    .data(courseNames.slice().reverse())
+.enter().append("g")
+    .attr("class", "legend")
+    .attr("transform", function (d, i) { return "translate(0," + i * 20 + ")"; });
+
+legend.append("rect")
+    .attr("x", width - 18 - 100 + 15)
+    .attr("width", 18)
+    .attr("height", 18)
+    .style("fill", color);
+
+legend.append("text")
+    .attr("x", width - 24 + 30 - 100 + 15)
+    .attr("y", 9)
+    .attr("dy", ".35em")
+    .style("text-anchor", "start")
+    .text(function (d) { return d; });
+</script>

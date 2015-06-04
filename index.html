@@ -45,6 +45,7 @@ var minTime = Number.MAX_VALUE;
 function modifyData(data) {
     var newData = []
     var existingData = {}
+    var profCountDict = {}
 
     // Merge averages
     for(var i = 0; i < data.length; i++) {
@@ -66,21 +67,54 @@ function modifyData(data) {
             var prevRating = existingData[dataPointString];
             rating = prevRating["sum"] + rating;
             prevCount = prevRating["count"];   
-        } 
+        } else {
+            // Update number of quarters a professor has taught
+            var prevCountProf = 0;
+            var prof = dataPoint.professor;
+            if (prof in profCountDict) {
+                prevCountProf = profCountDict[prof];
+            }
+            profCountDict[prof] = prevCountProf + 1;
+        }
 
         // Updated stored rating for a class
         existingData[dataPointString] = {"sum": rating, "count": prevCount + 1};
     }
 
+    var top5 = {};
+    var minCount = Number.MAX_VALUE;
+    var minKey = null;
+
+    for (var prof in profCountDict) {
+        if (Object.keys(top5).length < 5) {
+            top5[prof] = profCountDict[prof];
+            if (minCount > profCountDict[prof]) {
+                minCount = profCountDict[prof];
+                minKey = prof;
+            }
+        } else {
+            if (minCount < profCountDict[prof]) {
+                top5[prof] = profCountDict[prof];
+                delete top5[minKey];
+                minCount = profCountDict[prof];
+                minKey = prof;
+            } 
+        }
+    }
+
     // Set to previous format and add incrementing ticks
     minTime = Math.floor(minTime / 10) * 10;
     for (var key in existingData) {
-        if( existingData.hasOwnProperty(key) ) {
+    //for (var i = 0; i < tuples.length; i++) {
+        //var key = tuples[i][0];
+        if( key in existingData && existingData.hasOwnProperty(key) ) {
             var course = JSON.parse(key);
-            var rating = existingData[key];
-            course["the_course_as_a_whole"] = parseFloat((rating["sum"] / rating["count"]).toFixed(2));
+            if (course["professor"] in top5) {
+                var rating = existingData[key];
+                course["the_course_as_a_whole"] = parseFloat((rating["sum"] / rating["count"]).toFixed(2));
 
-            newData.push(course);
+                newData.push(course);
+            }
         }
     }    
     return newData;
@@ -93,24 +127,48 @@ var incrementedTime = function(time) {
 
 var data1 = [
   {
+    "the_course_as_a_whole": 2.5,
+    "time": 123,
+    "professor": "Ash",
+    "course_whole_code": "Hiiiiii",
+  },
+  {
+    "the_course_as_a_whole": 2.2,
+    "time": 122,
+    "professor": "Ali",
+    "course_whole_code": "Hiiiiii",
+  },
+  {
+    "the_course_as_a_whole": 2.3,
+    "time": 122,
+    "professor": "Emily Gu",
+    "course_whole_code": "Hiiiiii",
+  },
+  {
+    "the_course_as_a_whole": 2.4,
+    "time": 122,
+    "professor": "Brittany",
+    "course_whole_code": "Hiiiiii",
+  },
+  {
     "the_course_as_a_whole": 2,
     "time": 122,
     "professor": "Stuart Reges",
     "course_whole_code": "Hiiiiii",
   },
-  {
+  /*{
     "the_course_as_a_whole": 1,
     "time": 123,
     "professor": "Stuart Reges",
     "course_whole_code": "Hiiiiii",
-  },
+  },*/
   {
     "the_course_as_a_whole": 5,
     "time": 123,
     "professor": "Allison Obourn",
     "course_whole_code": "Hiiiiii",
   },
-  {
+  /*{
     "the_course_as_a_whole": 5,
     "time": 132,
     "professor": "Allison Obourn",
@@ -139,14 +197,14 @@ var data1 = [
     "time": 132,
     "professor": "Stuart Reges",
     "course_whole_code": "Hiiiiii",
-  },
+  },*/
   {
     "the_course_as_a_whole": 4.3,
     "time": 132,
     "professor": "Ilene Shen",
     "course_whole_code": "Hiiiiii",
   },
-  {
+  /*{
     "the_course_as_a_whole": 3,
     "time": 133,
     "professor": "Allison Obourn",
@@ -193,7 +251,7 @@ var data1 = [
     "time": 140,
     "professor": "Ilene Shen",
     "course_whole_code": "Hiiiiii",
-  }
+  }*/
 ];
 
 data1 = modifyData(data1);

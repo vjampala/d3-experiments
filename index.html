@@ -168,7 +168,7 @@ var data1 = [
     "professor": "Allison Obourn",
     "course_whole_code": "Hiiiiii",
   },
-  /*{
+  {
     "the_course_as_a_whole": 5,
     "time": 132,
     "professor": "Allison Obourn",
@@ -197,14 +197,14 @@ var data1 = [
     "time": 132,
     "professor": "Stuart Reges",
     "course_whole_code": "Hiiiiii",
-  },*/
+  },
   {
     "the_course_as_a_whole": 4.3,
     "time": 132,
     "professor": "Ilene Shen",
     "course_whole_code": "Hiiiiii",
   },
-  /*{
+  {
     "the_course_as_a_whole": 3,
     "time": 133,
     "professor": "Allison Obourn",
@@ -251,7 +251,7 @@ var data1 = [
     "time": 140,
     "professor": "Ilene Shen",
     "course_whole_code": "Hiiiiii",
-  }*/
+  }
 ];
 
 data1 = modifyData(data1);
@@ -407,6 +407,7 @@ svg.append("g")
     .style("text-anchor", "middle")
     .text("Overall Rating");
 
+// Draw line
 var professor = svg.selectAll(".professor")
     .data(cities)
     .enter().append("g")

@@ -273,30 +273,6 @@ function reorderData(data, keys, isAverage) {
     return arr;
 }
 
-function reorderDataForAverage(data, keys) {
-    var ratings = {}
-    for(var i = 0; i < keys.length; i++) {
-      ratings[i] = {};
-    }
-    var arr = {}
-
-    for(var i = 0; i < data.length; i++) {
-        var dataPoint = data[i];
-        var course_whole_code = dataPoint["course_whole_code"];
-        courseNames.push(course_whole_code);
-        for(var j = 0; j < keys.length; j++) {
-          ratings[j][course_whole_code] = dataPoint.averages[keys[j]];
-        }
-    }
-
-    for(var i = 0; i < keys.length; i++) {
-      arr[keys[i]] = d3.entries(ratings[i]);
-    }
-    arr = d3.entries(arr);
-
-    return arr;
-}
-
 var data2 = d3.nest()
     .key(function(d) {
         return d.professor;
@@ -454,7 +430,7 @@ svg.selectAll(".hover")
             })
             .on('mouseover', function(d){
                 tip.show(d);
-                d3.selectAll("." + d.key).style("fill-opacity", 1.0);
+                d3.selectAll("." + d.key).style("fill-opacity", 0.5);
             })
             .on('mouseout', function(d) {
                 tip.hide(d);
